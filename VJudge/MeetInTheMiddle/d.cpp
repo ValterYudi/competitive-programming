@@ -11,49 +11,43 @@ typedef vector<ii> vii;
 int moves[4][2] = {{-1, 0}, {1, 0}, {0, -1}, {0, 1}};
 
 int valid(vii &v, int x, int y){
-    if(x < 1 || x > 8 || y < 1 || y > 8) return 0;
+    if(max(x, y) > 8 or min(x, y) < 1) return 0;
 
-    if(make_pair(x, y) == v[0] || make_pair(x, y) == v[1] || make_pair(x, y) == v[2] || make_pair(x, y) == v[3]) return 2;
+    for(auto ele : v) if(make_pair(x, y) == ele) return 2;
     
     return 1;
 }
 void busca(vii &v_init, vector<vii> &ans){
 
-    vector<vii> aux, states(1, v_init);
+    set<vii> aux, states = {v_init};
     for(int k = 0; k < 4; k++){// 4 passos
         for(auto& v: states){
-            for(auto& [x, y] : v){ 
+            for(int l = 0; l < 4; l++){
+                int x = v[l].first, y = v[l].second; 
+                vii copia;
                 for(int i = 0; i < 4; i++){// 4 direções
-
+                    copia = v;
                     int nx = x + moves[i][0];
                     int ny = y + moves[i][1];
 
-                    if(valid(v, nx, ny) == 1){
-                        x = nx;
-                        y = ny;
-                        aux.push_back(v);
-                        x -= moves[i][0];
-                        y -= moves[i][1];
-                    }else if(valid(v, nx, ny) == 2 and valid(v, nx+moves[i][0], ny+moves[i][1]) == 1){
-                        x = nx + moves[i][0];
-                        y = ny + moves[i][1];
-                        aux.push_back(v);
-                        y -= moves[i][1]*2;
-                        x -= moves[i][0]*2;
+                    if(valid(copia, nx, ny) == 1){
+                        copia[l].first = nx;
+                        copia[l].second = ny;
+                        aux.insert(copia);
+                    }else if(valid(copia, nx, ny) == 2 and valid(copia, nx+moves[i][0], ny+moves[i][1]) == 1){
+                        copia[l].first = nx + moves[i][0];
+                        copia[l].second = ny + moves[i][1];
+                        aux.insert(copia);
                     }
-
                 }
-                
             }
-            sort(aux.begin(), aux.end());
-            aux.erase(unique(aux.begin(), aux.end()), aux.end());
-            swap(aux, states);
-            //add to ans
-            for(auto a : states) ans.push_back(a);
-            aux.clear();
         }
+        //add to ans
+        states = aux;
+        for(auto a : aux) ans.push_back(a);
         sort(ans.begin(), ans.end());
         ans.erase(unique(ans.begin(), ans.end()), ans.end());
+        aux.clear();
     }
 }
 int main(){
@@ -69,13 +63,16 @@ int main(){
         ans_final.push_back(vf);
         busca(v_org, ans_init);
         busca(vf, ans_final);
+        bool ok = 1;
         for(auto a : ans_init){
+            // for(auto e : a) cout << e.first << " " << e.second << " \n"[e == a.back()];
             if(binary_search(ans_final.begin(), ans_final.end(), a)){
                 cout << "YES\n";
-                return 0;
+                ok = 0;
             }
         }
-        cout << "NO\n";
+        // for(auto a : ans_final) for(auto e : a) cout << e.first << " " << e.second << " \n"[e == a.back()];
+        if(ok) cout << "NO\n";
     }
     return 0;
 }
